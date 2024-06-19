@@ -1,5 +1,3 @@
-import Threads.*;
-
 /*
  * Methods:
  * - Receive request for runway
@@ -11,6 +9,11 @@ import Threads.*;
  */
 
 public class ATC implements Runnable {
+
+    Runway runway = new Runway();
+
+    public ATC() {
+    }
 
     public synchronized void requestGate() {
 

@@ -1,6 +1,4 @@
 
-package Threads;
-
 /**
  * Plane
  * methods:
@@ -14,20 +12,20 @@ public class Plane implements Runnable {
 
     public Plane(int id) {
         this.ID = id;
+        System.out.println("Initializing Plane " + id);
     }
 
-    int getID() {
+    public int getID() {
         return ID;
     }
 
-    void taxiToGate() {
+    public void taxiToGate() {
         System.out.println("Plane number " + this.ID + "Taxi to gate number");
     }
 
     @Override
     public void run() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'run'");
+
     }
 
 }

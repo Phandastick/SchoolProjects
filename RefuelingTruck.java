@@ -1,5 +1,3 @@
-package Threads;
-
 public class RefuelingTruck implements Runnable {
     Plane plane;
 
