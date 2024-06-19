@@ -1,3 +1,4 @@
+package Threads;
 /*
  * Methods:
  * - stores passenger to be boarded

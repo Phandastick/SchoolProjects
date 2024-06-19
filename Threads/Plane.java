@@ -10,6 +10,20 @@ package Threads;
  */
 public class Plane implements Runnable {
 
+    private int ID;
+
+    public Plane(int id) {
+        this.ID = id;
+    }
+
+    int getID() {
+        return ID;
+    }
+
+    void taxiToGate() {
+        System.out.println("Plane number " + this.ID + "Taxi to gate number");
+    }
+
     @Override
     public void run() {
         // TODO Auto-generated method stub
