@@ -1,14 +1,17 @@
 public class RefuelingTruck implements Runnable {
-    Plane plane;
+
+    public RefuelingTruck() {
+        System.out.println("Initializing Refueling truck...");
+    }
 
     public synchronized void refuel(Gate gate) {
-        System.out.println("Refuelling plane " + plane.getID() + "...");
+        System.out.println("Refuel truck: Refuelling plane " + gate.plane.getID() + "...");
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
         }
 
-        System.out.println("Plane " + plane.getID() + " refuelled");
+        System.out.println("Refuel truck: Plane " + gate.plane.getID() + " refuelled");
     }
 
     @Override

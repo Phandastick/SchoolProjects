@@ -8,6 +8,7 @@ public class Runway extends Thread {
     private Plane plane;
 
     public Runway() {
+        System.out.println("Initializing Runway...");
         this.occupied = false;
     }
 
@@ -26,7 +27,7 @@ public class Runway extends Thread {
     }
 
     // is runway avaialble
-    public boolean checkLanding() {
+    public boolean checkOccupied() {
         return occupied;
     }
 }

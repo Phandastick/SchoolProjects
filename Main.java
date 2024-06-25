@@ -11,15 +11,15 @@ import java.util.Random;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-        Random rand = new Random();
         ATC atc = new ATC();
+        Random rand = new Random();
         int NumberOfPlanes = 6;
         int MaxMilliseconds = 2000;
 
         for (int i = 1; i <= NumberOfPlanes; i++) {
-            Plane plane = new Plane(i);
+            Plane plane = new Plane(i, atc);
             Thread planeThread = new Thread(plane);
-
+            planeThread.start();
             Thread.sleep(rand.nextInt(MaxMilliseconds));
         }
     }
