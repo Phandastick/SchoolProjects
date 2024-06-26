@@ -17,12 +17,16 @@ public class Runway extends Thread {
         this.plane = plane;
         this.occupied = true;
 
+        System.out.println(colors.BLACK + "Runway: Plane " + plane.getID() + " has landed on the runway.");
+
         Thread.sleep(3000);
         System.out.println("Plane " + plane.getID() + " has landed on the runway.");
     }
 
     public void taxiPlane(Plane plane, Gate gate) {
         plane.taxiToGate(gate);
+        this.plane = null;
+        this.occupied = false;
     }
 
     // tells which plan is on runway

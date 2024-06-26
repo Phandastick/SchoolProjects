@@ -9,16 +9,18 @@
  */
 
 import java.util.ArrayList;
+import java.util.concurrent.Semaphore;
 
 public class ATC {
     public RefuelingTruck truck;
     private Runway runway;
     private Gate g1, g2, g3;
+    Semaphore sem;
 
     private ArrayList<Gate> gates;
 
-    public ATC() {
-        System.out.println("Initializing ATC...");
+    public ATC(Semaphore sem) {
+        System.out.println(colors.RED_BOLD + "Initializing ATC...");
         runway = new Runway();
         gates = new ArrayList<Gate>();
         g1 = new Gate(this, 1);
@@ -28,12 +30,14 @@ public class ATC {
         gates.add(g2);
         gates.add(g3);
 
-        System.out.println("\n Testing gates: ");
+        this.sem = sem;
+
+        System.out.println(colors.BLUE + "\n Testing gates: ");
 
         for (Gate gate : gates) {
-            System.out.println("Gate number one: " + gate.getID());
+            System.out.println("Gate number " + gate.getID() + " : " + gate.getID());
         }
-
+        System.out.println(colors.RESET);
         truck = new RefuelingTruck();
     }
 

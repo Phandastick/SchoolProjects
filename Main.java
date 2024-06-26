@@ -1,4 +1,5 @@
 import java.util.Random;
+import java.util.concurrent.Semaphore;
 
 /*
  Deliverables:
@@ -11,7 +12,9 @@ import java.util.Random;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-        ATC atc = new ATC();
+        Semaphore sem = new Semaphore(3);
+
+        ATC atc = new ATC(sem);
         Random rand = new Random();
         int NumberOfPlanes = 6;
         int MaxMilliseconds = 2000;

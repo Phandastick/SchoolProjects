@@ -15,7 +15,7 @@ public class Plane implements Runnable {
     public Plane(int id, ATC atc) {
         this.ID = id;
         this.atc = atc;
-        System.out.println("Initializing Plane " + id);
+        System.out.println(colors.CYAN + "Initializing Plane " + id + "..." + colors.RESET);
     }
 
     public int getID() {
