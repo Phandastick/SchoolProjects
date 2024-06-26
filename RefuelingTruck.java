@@ -5,7 +5,7 @@ public class RefuelingTruck implements Runnable {
     }
 
     public synchronized void refuel(Gate gate) {
-        System.out.println("Refuel truck: Refuelling plane " + gate.plane.getID() + "...");
+        System.out.println("Refuel truck: Refuelling plane " + Thread.currentThread().getName() + "...");
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {

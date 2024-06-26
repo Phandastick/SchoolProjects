@@ -41,11 +41,34 @@ public class ATC {
         truck = new RefuelingTruck();
     }
 
-    public synchronized void requestLanding(Plane plane) {
-        while (true) {
-            if (runway.checkOccupied() && checkGate()) {
-                System.out.println("Plane " + plane.getID() + " waiting for runway to clear");
+    public void requestLanding(Plane plane) {
+        try {
+            sem.acquire();
+            Gate gateCheck = checkGate();
+
+            while (true) {
+                // System.out.println("Runway Occupied: " + runway.checkOccupied());
+                // System.out.println(colors.RED_BOLD + "Gatecheck: " + gateCheck.getID());
+
+                if (!runway.checkOccupied() && (gateCheck != null)) {
+                    System.out.println(colors.GREEN + "ATC: Gate found for " + Thread.currentThread().getName()
+                            + " gate " + gateCheck.getID() + colors.RESET);
+                    System.out.println(colors.GREEN_BOLD + "ATC: " + colors.RESET + Thread.currentThread().getName()
+                            + " cleared to land at gate " + gateCheck.getID());
+                    try {
+                        runway.setPlane(plane);
+                        runway.taxiPlane(plane, gateCheck);
+                        break;
+                    } catch (InterruptedException e) {
+                    }
+                } else {
+                    System.out.println(colors.GREEN + "ATC: Landing rejected for " + Thread.currentThread().getName());
+                    Thread.sleep(2000);
+                }
             }
+        } catch (InterruptedException e) {
+        } finally {
+            sem.release();
         }
     }
 
@@ -53,12 +76,16 @@ public class ATC {
 
     }
 
-    public boolean checkGate() {
+    public Gate checkGate() {
         for (Gate gate : gates) {
-            if (gate.check()) {
-                return true;
+            if (gate.plane == null) {
+                return gate;
             }
         }
-        return false;
+        return null;
+    }
+
+    public static void main(String[] args) {
+
     }
 }

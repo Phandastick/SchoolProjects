@@ -8,6 +8,7 @@ public class Gate {
     public Gate(ATC atc, int id) {
         this.atc = atc;
         this.ID = id;
+        plane = null;
     }
 
     public void setPlane(Plane plane) {
@@ -15,26 +16,26 @@ public class Gate {
     }
 
     public synchronized void boardPlane(Plane plane) throws InterruptedException {
-        System.out.println("Gate " + this.getID() + ": Plane " + plane.getID() + " is being boarded...");
+        System.out.println("Gate " + this.getID() + ": " + Thread.currentThread().getName() + " is being boarded...");
         Thread.sleep(3000);
-        System.out.println("Gate " + this.getID() + ": Plane " + plane.getID() + " has boarded");
+        System.out.println("Gate " + this.getID() + ": " + Thread.currentThread().getName() + " has boarded");
 
     }
 
     public void preparePlane(Plane plane) {
 
-        System.out.println("Gate " + this.getID() + ": Cleaning plane " + plane.getID());
+        System.out.println("Gate " + this.getID() + ": Cleaning plane " + Thread.currentThread().getName());
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
         }
         refuelingTruck.refuel(this);
-
-        System.out.println("Gate " + this.getID() + ": Plane " + plane.getID() + " is refueled & Cleaned");
+        System.out.println(
+                "Gate " + this.getID() + ": Plane " + Thread.currentThread().getName() + " is refueled & Cleaned");
     }
 
-    public boolean check() {
-        if (plane != null) {
+    public boolean checkPlane() {
+        if (this.plane != null) {
             return true;
         } else {
             return false;

@@ -23,7 +23,12 @@ public class Plane implements Runnable {
     }
 
     public void taxiToGate(Gate gate) {
-        System.out.println("Plane number " + this.ID + " : Taxi to gate number " + gate.getID());
+        System.out.println("Plane number " + this.ID + " : Taxi to gate number " + gate.getID() + "\n");
+        try {
+            Thread.sleep(850);
+        } catch (InterruptedException e) {
+        }
+        gate.setPlane(this);
     }
 
     @Override

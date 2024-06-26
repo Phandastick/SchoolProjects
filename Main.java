@@ -21,7 +21,8 @@ public class Main {
 
         for (int i = 1; i <= NumberOfPlanes; i++) {
             Plane plane = new Plane(i, atc);
-            Thread planeThread = new Thread(plane);
+            String name = "Plane" + i;
+            Thread planeThread = new Thread(plane, name);
             planeThread.start();
             Thread.sleep(rand.nextInt(MaxMilliseconds));
         }
