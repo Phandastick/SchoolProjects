@@ -21,6 +21,10 @@ public class Runway extends Thread {
         System.out.println("Plane " + plane.getID() + " has landed on the runway.");
     }
 
+    public void taxiPlane(Plane plane, Gate gate) {
+        plane.taxiToGate(gate);
+    }
+
     // tells which plan is on runway
     public Plane getPlane() {
         return plane;

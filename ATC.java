@@ -37,6 +37,14 @@ public class ATC {
         truck = new RefuelingTruck();
     }
 
+    public synchronized void requestLanding(Plane plane) {
+        while (true) {
+            if (runway.checkOccupied() && checkGate()) {
+                System.out.println("Plane " + plane.getID() + " waiting for runway to clear");
+            }
+        }
+    }
+
     public synchronized void requestGate() {
 
     }
@@ -48,13 +56,5 @@ public class ATC {
             }
         }
         return false;
-    }
-
-    public synchronized void requestLanding(Plane plane) {
-        while (true) {
-            if (runway.checkOccupied() && checkGate()) {
-                System.out.println("Plane " + plane.getID() + " waiting for runway to clear");
-            }
-        }
     }
 }

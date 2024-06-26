@@ -22,8 +22,8 @@ public class Plane implements Runnable {
         return ID;
     }
 
-    public void taxiToGate() {
-        System.out.println("Plane number " + this.ID + " : Taxi to gate number ");
+    public void taxiToGate(Gate gate) {
+        System.out.println("Plane number " + this.ID + " : Taxi to gate number " + gate.getID());
     }
 
     @Override
