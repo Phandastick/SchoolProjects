@@ -33,6 +33,22 @@ public class Plane implements Runnable {
         gate.setPlane(this);
     }
 
+    public void embark() {
+        System.out.println(
+                colors.BLACK + Thread.currentThread().getName() + ": boarding passengers..." + colors.RESET);
+
+        while (this.passengers < 50) {
+            this.passengers++;
+            try {
+                Thread.sleep(30);
+            } catch (InterruptedException e) {
+            }
+        }
+
+        System.out.println(
+                colors.BLACK + Thread.currentThread().getName() + ": All passengers boarded" + colors.RESET);
+    }
+
     public void disEmbark() {
         System.out.println(
                 colors.BLACK + Thread.currentThread().getName() + ": disembarking passengers..." + colors.RESET);
@@ -51,8 +67,16 @@ public class Plane implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Plane " + this.getID() + " : Requesting to land...");
-        atc.requestLanding(this);
+        boolean cond = true;
+        while (cond) {
+            System.out.println("Plane " + this.getID() + " : Requesting to land...");
+            cond = atc.requestLanding(this);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+            }
+        }
+
     }
 
 }

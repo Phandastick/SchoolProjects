@@ -1,5 +1,5 @@
 
-public class Gate {
+public class Gate implements Runnable {
     ATC atc;
     Plane plane;
     RefuelingTruck refuelingTruck;
@@ -14,10 +14,13 @@ public class Gate {
 
     public void setPlane(Plane plane) {
         this.plane = plane;
-        preparePlane(plane);
+        // preparePlane(plane);
     }
 
     public synchronized void boardPlane(Plane plane) throws InterruptedException {
+        System.out
+                .println("Gate " + this.getID() + ":  Passenger boarding " + Thread.currentThread().getName() + "...");
+        plane.embark();
     }
 
     public void preparePlane(Plane plane) {
@@ -31,7 +34,7 @@ public class Gate {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
         }
-        refuelingTruck.refuel(this);
+        refuelingTruck.refuel(this.plane);
         System.out.println(
                 "Gate " + this.getID() + ": Plane " + Thread.currentThread().getName() + " is refueled & Cleaned");
         System.out
@@ -59,5 +62,24 @@ public class Gate {
 
     public int getID() {
         return this.ID;
+    }
+
+    @Override
+    public void run() {
+        synchronized (atc) {
+            System.out.println(colors.PURPLE + "Gate " + this.getID() + ": Running gate thread..." + colors.RESET);
+            try {
+                while (plane == null) {
+                    System.out.println(colors.PURPLE + "Gate " + this.getID() + ": is waiting...");
+                    atc.wait(5000);
+                    System.out.println(colors.PURPLE + "Gate " + this.getID() + ": is awake!");
+                    if (plane != null) {
+                        preparePlane(this.plane);
+                    }
+                }
+            } catch (Exception e) {
+            }
+
+        }
     }
 }

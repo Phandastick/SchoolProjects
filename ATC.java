@@ -9,7 +9,6 @@
  */
 
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.concurrent.Semaphore;
 
 public class ATC {
@@ -20,6 +19,7 @@ public class ATC {
 
     private ArrayList<Gate> gates;
 
+    // initializing ATC, Runway, gates, refuel trucks
     public ATC(Semaphore sem) {
         System.out.println(colors.RED_BOLD + "Initializing ATC...");
         truck = new RefuelingTruck();
@@ -38,19 +38,24 @@ public class ATC {
 
         for (Gate gate : gates) {
             System.out.println("Gate number " + gate.getID() + " : " + gate.getID());
+            Thread gThread = new Thread(gate);
+            gThread.start();
         }
         System.out.println(colors.RESET);
     }
 
-    public void requestLanding(Plane plane) {
-        try {
-            sem.acquire();
+    public boolean requestLanding(Plane plane) {
+        synchronized (this) {
+            try {
+                sem.acquire(1);
 
-            synchronized (sem) {
+                // synchronized (sem) {
                 Gate gateCheck = checkGate();
-                if (gateCheck == null) { // check if all gates are occupied
-                    System.out
-                            .println(colors.RED_BOLD + Thread.currentThread().getName() + "is waiting " + colors.RESET);
+                while (gateCheck == null) { // check if all gates are occupied;
+                    // System.out.println(colors.RED_BOLD + Thread.currentThread().getName() + "is
+                    // waiting " + colors.RESET);
+                    System.out.println(colors.GREEN + "ATC: " + Thread.currentThread().getName() + " is waiting...");
+                    wait();
                 }
                 // debug checks
                 // System.out.println("Runway Occupied: " + runway.checkOccupied());
@@ -60,27 +65,26 @@ public class ATC {
                     System.out.println(colors.GREEN + "ATC: Gate found for " + Thread.currentThread().getName()
                             + " gate " + gateCheck.getID() + colors.RESET);
                     System.out.println(colors.GREEN_BOLD + "ATC: " + colors.RESET + Thread.currentThread().getName()
-                            + " cleared to land at gate " + gateCheck.getID());
-                    try {
-                        runway.setPlane(plane);
-                        runway.taxiPlane(plane, gateCheck);
-                        notify();
-                    } catch (InterruptedException e) {
-                    }
+                            + " cleared to taxi to gate " + gateCheck.getID());
+                    runway.setPlane(plane);
+                    runway.taxiPlane(plane, gateCheck, sem);
+                    notifyAll();
+                    System.out.println(colors.GREEN + "ATC: Notified everybody!");
+                    return false;
                 } else {
                     System.out.println(
                             colors.GREEN + "ATC: Landing rejected for " + Thread.currentThread().getName());
+                    return true;
+                    // }
                 }
+
+            } catch (InterruptedException e) {
+            } finally {
+                sem.release();
             }
+            return true;
 
-        } catch (InterruptedException e) {
-        } finally {
-            sem.release();
         }
-    }
-
-    public synchronized void requestGate() {
-
     }
 
     public Gate checkGate() {
