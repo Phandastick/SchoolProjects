@@ -8,13 +8,15 @@
  */
 public class Plane implements Runnable {
 
-    private int ID;
+    private int ID, passengers, fuel;
 
     private ATC atc;
 
     public Plane(int id, ATC atc) {
         this.ID = id;
         this.atc = atc;
+        this.passengers = 0;
+        this.fuel = 0;
         System.out.println(colors.CYAN + "Initializing Plane " + id + "..." + colors.RESET);
     }
 
@@ -29,6 +31,22 @@ public class Plane implements Runnable {
         } catch (InterruptedException e) {
         }
         gate.setPlane(this);
+    }
+
+    public void disEmbark() {
+        System.out.println(
+                colors.BLACK + Thread.currentThread().getName() + ": disembarking passengers..." + colors.RESET);
+
+        while (this.passengers > 0) {
+            this.passengers--;
+            try {
+                Thread.sleep(30);
+            } catch (InterruptedException e) {
+            }
+        }
+
+        System.out.println(
+                colors.BLACK + Thread.currentThread().getName() + ": All passengers disembarked" + colors.RESET);
     }
 
     @Override

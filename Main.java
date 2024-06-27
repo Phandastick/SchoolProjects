@@ -16,7 +16,7 @@ public class Main {
 
         ATC atc = new ATC(sem);
         Random rand = new Random();
-        int NumberOfPlanes = 6;
+        int NumberOfPlanes = 10;
         int MaxMilliseconds = 2000;
 
         for (int i = 1; i <= NumberOfPlanes; i++) {

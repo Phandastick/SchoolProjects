@@ -3,7 +3,9 @@
  * - receive plane landing
  */
 
-public class Runway extends Thread {
+import java.util.Currency;
+
+public class Runway implements Runnable {
     private boolean occupied;
     private Plane plane;
 
@@ -19,7 +21,7 @@ public class Runway extends Thread {
 
         Thread.sleep(1000);
 
-        System.out.println(colors.BLACK + "Runway: Plane " + plane.getID() + " has landed on the runway.");
+        System.out.println(colors.BLACK + "Runway: " + Thread.currentThread().getName() + " has landed on the runway.");
     }
 
     public void taxiPlane(Plane plane, Gate gate) {
@@ -36,5 +38,9 @@ public class Runway extends Thread {
     // is runway avaialble
     public boolean checkOccupied() {
         return occupied;
+    }
+
+    @Override
+    public void run() {
     }
 }

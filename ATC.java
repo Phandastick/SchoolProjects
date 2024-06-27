@@ -9,6 +9,7 @@
  */
 
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.concurrent.Semaphore;
 
 public class ATC {
@@ -21,6 +22,7 @@ public class ATC {
 
     public ATC(Semaphore sem) {
         System.out.println(colors.RED_BOLD + "Initializing ATC...");
+        truck = new RefuelingTruck();
         runway = new Runway();
         gates = new ArrayList<Gate>();
         g1 = new Gate(this, 1);
@@ -38,19 +40,23 @@ public class ATC {
             System.out.println("Gate number " + gate.getID() + " : " + gate.getID());
         }
         System.out.println(colors.RESET);
-        truck = new RefuelingTruck();
     }
 
     public void requestLanding(Plane plane) {
         try {
             sem.acquire();
-            Gate gateCheck = checkGate();
 
-            while (true) {
+            synchronized (sem) {
+                Gate gateCheck = checkGate();
+                if (gateCheck == null) { // check if all gates are occupied
+                    System.out
+                            .println(colors.RED_BOLD + Thread.currentThread().getName() + "is waiting " + colors.RESET);
+                }
+                // debug checks
                 // System.out.println("Runway Occupied: " + runway.checkOccupied());
                 // System.out.println(colors.RED_BOLD + "Gatecheck: " + gateCheck.getID());
 
-                if (!runway.checkOccupied() && (gateCheck != null)) {
+                if (!runway.checkOccupied()) {
                     System.out.println(colors.GREEN + "ATC: Gate found for " + Thread.currentThread().getName()
                             + " gate " + gateCheck.getID() + colors.RESET);
                     System.out.println(colors.GREEN_BOLD + "ATC: " + colors.RESET + Thread.currentThread().getName()
@@ -58,14 +64,15 @@ public class ATC {
                     try {
                         runway.setPlane(plane);
                         runway.taxiPlane(plane, gateCheck);
-                        break;
+                        notify();
                     } catch (InterruptedException e) {
                     }
                 } else {
-                    System.out.println(colors.GREEN + "ATC: Landing rejected for " + Thread.currentThread().getName());
-                    Thread.sleep(2000);
+                    System.out.println(
+                            colors.GREEN + "ATC: Landing rejected for " + Thread.currentThread().getName());
                 }
             }
+
         } catch (InterruptedException e) {
         } finally {
             sem.release();
