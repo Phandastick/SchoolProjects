@@ -15,7 +15,7 @@ public class ATC {
     public RefuelingTruck truck;
     private Runway runway;
     private Gate g1, g2, g3;
-    Semaphore sem;
+    private Semaphore sem;
 
     private ArrayList<Gate> gates;
 
@@ -25,29 +25,29 @@ public class ATC {
         truck = new RefuelingTruck(this);
         runway = new Runway(this);
         gates = new ArrayList<Gate>();
-        g1 = new Gate(this, 1);
-        g2 = new Gate(this, 2);
-        g3 = new Gate(this, 3);
+        g1 = new Gate(this, 1, sem);
+        g2 = new Gate(this, 2, sem);
+        g3 = new Gate(this, 3, sem);
         gates.add(g1);
         gates.add(g2);
         gates.add(g3);
 
         this.sem = sem;
 
-        System.out.println(colors.BLUE + "\n Testing gates: ");
+        // System.out.println(colors.BLUE + "\n Testing gates: ");
 
         for (Gate gate : gates) {
-            System.out.println("Gate number " + gate.getID() + " : " + gate.getID());
+            // System.out.println("Gate number " + gate.getID() + " : " + gate.getID());
             String gateName = "Gate " + gate.getID();
             Thread gThread = new Thread(gate, gateName);
             gThread.start();
         }
-        System.out.println(colors.RESET);
+        // System.out.println(colors.RESET);
     }
 
     public boolean requestLanding(Plane plane) {
         try {
-            sem.acquire(3);
+            sem.acquire(1);
 
             // synchronizing the ATC and the planes on Semaphore lock to notify when a gate
             // is empty AND the runway is clear
@@ -57,33 +57,31 @@ public class ATC {
                     // System.out.println(colors.RED_BOLD + Thread.currentThread().getName() + "is
                     // waiting " + colors.RESET);
                     System.out.println(
-                            colors.atc + "ATC: " + Thread.currentThread().getName() + " is waiting..."
-                                    + colors.RESET);
+                            colors.atc + "Plane " + plane.getID() + ": is awaiting landing request..." + colors.RESET);
                     wait();
                 }
                 // debug checks
                 // System.out.println("Runway Occupied: " + runway.checkOccupied());
                 // System.out.println(colors.RED_BOLD + "Gatecheck: " + gateCheck.getID());
 
-                if (!runway.checkOccupied()) {
-                    System.out.println(colors.atc + "ATC: Gate found for " + Thread.currentThread().getName()
-                            + " gate " + gateCheck.getID() + colors.RESET);
-                    System.out.println(colors.atc + "ATC: " + colors.RESET + Thread.currentThread().getName()
-                            + " cleared to taxi to gate " + gateCheck.getID());
+                while (!runway.checkOccupied()) {
+                    System.out.println(colors.atc + "ATC: Gate found for Plane " + plane.getID() + " at gate "
+                            + gateCheck.getID() + colors.RESET);
+                    Thread.sleep(200);
                     runway.setPlane(plane);
+                    Thread.sleep(200);
                     runway.taxiPlane(plane, gateCheck, sem);
-                    notifyAll();
-                    System.out.println(colors.atc + "ATC: Notified everybody!" + colors.RESET);
+                    // notifyAll();
+                    // System.out.println(colors.atc + "ATC: Notified everybody!" + colors.RESET);
                     return false;
-                } else {
-                    System.out.println(
-                            colors.GREEN + "ATC: Landing rejected for " + Thread.currentThread().getName()
-                                    + colors.RESET);
-                    return true;
                 }
+                System.out.println(colors.GREEN + "ATC: Landing rejected for " + Thread.currentThread().getName()
+                        + colors.RESET);
+                return true;
             }
+        } catch (
 
-        } catch (InterruptedException e) {
+        InterruptedException e) {
         } finally {
             sem.release();
         }

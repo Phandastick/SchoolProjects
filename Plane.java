@@ -25,8 +25,8 @@ public class Plane implements Runnable {
     }
 
     public void taxiToGate(Gate gate) {
-        System.out.println(colors.plane + "Plane number " + this.ID + " : Taxi to gate number " + gate.getID() + "\n"
-                + colors.RESET);
+        System.out.println(
+                colors.unimportant + "Plane: Taxiing plane to gate " + gate.getID() + colors.RESET + colors.RESET);
         try {
             Thread.sleep(850);
         } catch (InterruptedException e) {
@@ -35,8 +35,7 @@ public class Plane implements Runnable {
     }
 
     public void embark() {
-        System.out.println(
-                colors.plane + "Plane " + this.getID() + ": boarding passengers..." + colors.RESET);
+        System.out.println(colors.unimportant + "Plane " + this.getID() + ": boarding passengers..." + colors.RESET);
 
         while (this.passengers < 50) {
             this.passengers++;
@@ -46,13 +45,12 @@ public class Plane implements Runnable {
             }
         }
 
-        System.out.println(
-                colors.plane + "plane " + this.getID() + ": All passengers boarded" + colors.RESET);
+        System.out.println(colors.plane + "plane " + this.getID() + ": All passengers boarded" + colors.RESET);
     }
 
     public void disEmbark() {
         System.out.println(
-                colors.plane + "plane " + this.getID() + ": disembarking passengers..." + colors.RESET);
+                colors.unimportant + "plane " + this.getID() + ": disembarking passengers..." + colors.RESET);
 
         while (this.passengers > 0) {
             this.passengers--;
@@ -65,21 +63,21 @@ public class Plane implements Runnable {
                 colors.plane + "plane " + this.getID() + ": All passengers disembarked" + colors.RESET);
     }
 
-    public synchronized void refuel(Gate gate) {
-        synchronized (gate) {
-            notify();
-        }
+    public synchronized void addFuel(int fuel) {
+        this.fuel += fuel;
     }
 
     @Override
     public void run() {
         boolean cond = true;
-        while (cond) {
-            System.out.println(colors.plane + "Plane " + this.getID() + " : Requesting to land..." + colors.RESET);
-            cond = atc.requestLanding(this);
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
+        synchronized (atc) {
+            while (cond) {
+                System.out.println(colors.plane + "Plane " + this.getID() + " : Requesting to land..." + colors.RESET);
+                cond = atc.requestLanding(this);
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                }
             }
         }
     }

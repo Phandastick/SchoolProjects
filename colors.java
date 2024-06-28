@@ -81,4 +81,5 @@ public class colors {
 
     public static final String init = RED_BOLD;
     public static final String testing = BLUE_BACKGROUND_BRIGHT;
+    public static final String unimportant = BLACK;
 }

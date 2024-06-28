@@ -7,8 +7,8 @@ public class RefuelingTruck implements Runnable {
     }
 
     public synchronized void refuel(Plane plane) {
-        System.out.println(colors.truck + "Refuel truck: Refuelling plane " + Thread.currentThread().getName() + "..."
-                + colors.RESET);
+        System.out.println(colors.unimportant + "Refuel truck: Refuelling plane " + Thread.currentThread().getName()
+                + "..." + colors.RESET);
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
