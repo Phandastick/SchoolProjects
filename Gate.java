@@ -1,9 +1,9 @@
 
 public class Gate implements Runnable {
-    ATC atc;
+    private final ATC atc;
     Plane plane;
-    RefuelingTruck refuelingTruck;
-    private int ID;
+    final RefuelingTruck refuelingTruck;
+    private final int ID;
 
     public Gate(ATC atc, int id) {
         this.atc = atc;
@@ -14,31 +14,33 @@ public class Gate implements Runnable {
 
     public void setPlane(Plane plane) {
         this.plane = plane;
-        // preparePlane(plane);
     }
 
-    public synchronized void boardPlane(Plane plane) throws InterruptedException {
+    public synchronized void boardPlane(Plane plane) {
         System.out
-                .println("Gate " + this.getID() + ":  Passenger boarding " + Thread.currentThread().getName() + "...");
+                .println(colors.gate + "Gate " + this.getID() + ":  Passenger boarding plane " +
+                        plane.getID() + "..." + colors.RESET);
         plane.embark();
     }
 
     public void preparePlane(Plane plane) {
         System.out
-                .println("Gate " + this.getID() + ": " + Thread.currentThread().getName() + " is being disembarked...");
+                .println(colors.gate + "Gate " + this.getID() + ": plane " +
+                        plane.getID() + " is being disembarked..." + colors.RESET);
         plane.disEmbark();
 
         // 2000 to clean plane
-        System.out.println("Gate " + this.getID() + ": Cleaning plane " + Thread.currentThread().getName());
+        System.out
+                .println(colors.gate + "Gate " + this.getID() + ": Cleaning pplane " +
+                        plane.getID() + colors.RESET);
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
         }
         refuelingTruck.refuel(this.plane);
-        System.out.println(
-                "Gate " + this.getID() + ": Plane " + Thread.currentThread().getName() + " is refueled & Cleaned");
-        System.out
-                .println("Gate " + this.getID() + ": " + Thread.currentThread().getName() + " is boarding passengers");
+        System.out.println(colors.gate + "Gate " + this.getID() + ": plane " + plane.getID() + " is refueled & Cleaned"
+                + colors.RESET);
+        boardPlane(plane);
     }
 
     public boolean checkPlane() {
@@ -56,10 +58,6 @@ public class Gate implements Runnable {
         return this.plane;
     }
 
-    public void setID(int id) {
-        this.ID = id;
-    }
-
     public int getID() {
         return this.ID;
     }
@@ -67,16 +65,20 @@ public class Gate implements Runnable {
     @Override
     public void run() {
         synchronized (atc) {
-            System.out.println(colors.PURPLE + "Gate " + this.getID() + ": Running gate thread..." + colors.RESET);
+            System.out.println(colors.gate + "Gate " + this.getID() + ": Running gate thread..." + colors.RESET);
             try {
                 while (plane == null) {
-                    System.out.println(colors.PURPLE + "Gate " + this.getID() + ": is waiting...");
-                    atc.wait(5000);
-                    System.out.println(colors.PURPLE + "Gate " + this.getID() + ": is awake!");
+                    System.out.println(colors.gate + "Gate " + this.getID() + ": is waiting..." + colors.RESET);
+                    atc.wait();
+                    System.out.println(colors.gate + "Gate " + this.getID() + ": is awake!" + colors.RESET);
                     if (plane != null) {
                         preparePlane(this.plane);
                     }
                 }
+
+                Thread.sleep(5000);
+                System.out.println(colors.gate + "Deleting plane " + this.plane.getID() + "..." + colors.RESET);
+                this.plane = null;
             } catch (Exception e) {
             }
 

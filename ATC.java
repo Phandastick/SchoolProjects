@@ -22,8 +22,8 @@ public class ATC {
     // initializing ATC, Runway, gates, refuel trucks
     public ATC(Semaphore sem) {
         System.out.println(colors.RED_BOLD + "Initializing ATC...");
-        truck = new RefuelingTruck();
-        runway = new Runway();
+        truck = new RefuelingTruck(this);
+        runway = new Runway(this);
         gates = new ArrayList<Gate>();
         g1 = new Gate(this, 1);
         g2 = new Gate(this, 2);
@@ -38,23 +38,27 @@ public class ATC {
 
         for (Gate gate : gates) {
             System.out.println("Gate number " + gate.getID() + " : " + gate.getID());
-            Thread gThread = new Thread(gate);
+            String gateName = "Gate " + gate.getID();
+            Thread gThread = new Thread(gate, gateName);
             gThread.start();
         }
         System.out.println(colors.RESET);
     }
 
     public boolean requestLanding(Plane plane) {
-        synchronized (this) {
-            try {
-                sem.acquire(1);
+        try {
+            sem.acquire(3);
 
-                // synchronized (sem) {
+            // synchronizing the ATC and the planes on Semaphore lock to notify when a gate
+            // is empty AND the runway is clear
+            synchronized (this) {
                 Gate gateCheck = checkGate();
                 while (gateCheck == null) { // check if all gates are occupied;
                     // System.out.println(colors.RED_BOLD + Thread.currentThread().getName() + "is
                     // waiting " + colors.RESET);
-                    System.out.println(colors.GREEN + "ATC: " + Thread.currentThread().getName() + " is waiting...");
+                    System.out.println(
+                            colors.atc + "ATC: " + Thread.currentThread().getName() + " is waiting..."
+                                    + colors.RESET);
                     wait();
                 }
                 // debug checks
@@ -62,29 +66,28 @@ public class ATC {
                 // System.out.println(colors.RED_BOLD + "Gatecheck: " + gateCheck.getID());
 
                 if (!runway.checkOccupied()) {
-                    System.out.println(colors.GREEN + "ATC: Gate found for " + Thread.currentThread().getName()
+                    System.out.println(colors.atc + "ATC: Gate found for " + Thread.currentThread().getName()
                             + " gate " + gateCheck.getID() + colors.RESET);
-                    System.out.println(colors.GREEN_BOLD + "ATC: " + colors.RESET + Thread.currentThread().getName()
+                    System.out.println(colors.atc + "ATC: " + colors.RESET + Thread.currentThread().getName()
                             + " cleared to taxi to gate " + gateCheck.getID());
                     runway.setPlane(plane);
                     runway.taxiPlane(plane, gateCheck, sem);
                     notifyAll();
-                    System.out.println(colors.GREEN + "ATC: Notified everybody!");
+                    System.out.println(colors.atc + "ATC: Notified everybody!" + colors.RESET);
                     return false;
                 } else {
                     System.out.println(
-                            colors.GREEN + "ATC: Landing rejected for " + Thread.currentThread().getName());
+                            colors.GREEN + "ATC: Landing rejected for " + Thread.currentThread().getName()
+                                    + colors.RESET);
                     return true;
-                    // }
                 }
-
-            } catch (InterruptedException e) {
-            } finally {
-                sem.release();
             }
-            return true;
 
+        } catch (InterruptedException e) {
+        } finally {
+            sem.release();
         }
+        return true;
     }
 
     public Gate checkGate() {

@@ -8,10 +8,12 @@ import java.util.concurrent.Semaphore;
 public class Runway implements Runnable {
     private boolean occupied;
     private Plane plane;
+    private final ATC atc;
 
-    public Runway() {
+    public Runway(ATC atc) {
         System.out.println("Initializing Runway...");
         this.occupied = false;
+        this.atc = atc;
     }
 
     // Lands plane on runway
@@ -23,17 +25,16 @@ public class Runway implements Runnable {
         System.out.println(colors.BLACK + "Runway: " + Thread.currentThread().getName() + " has landed on the runway.");
     }
 
-    public synchronized void taxiPlane(Plane plane, Gate gate, Semaphore sem) {
+    public void taxiPlane(Plane plane, Gate gate, Semaphore sem) {
         // System.out.println(colors.RED_BOLD + "Runway: Calling taxi to gate
         // function");
-        plane.taxiToGate(gate);
-        this.plane = null;
-        this.occupied = false;
-        notifyAll();
-        // System.out.println(colors.RED_BOLD + "Runway: Notify function called!");
-        sem.release();
-        System.out.println(colors.RED_BOLD + "Runway: Semaphore released!" + colors.RESET);
-
+        synchronized (atc) {
+            plane.taxiToGate(gate);
+            this.plane = null;
+            this.occupied = false;
+            sem.release();
+            System.out.println(colors.RED_BOLD + "Runway: Semaphore released!" + colors.RESET);
+        }
     }
 
     // tells which plan is on runway

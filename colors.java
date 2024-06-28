@@ -71,4 +71,14 @@ public class colors {
     public static final String PURPLE_BACKGROUND_BRIGHT = "\033[0;105m"; // PURPLE
     public static final String CYAN_BACKGROUND_BRIGHT = "\033[0;106m"; // CYAN
     public static final String WHITE_BACKGROUND_BRIGHT = "\033[0;107m"; // WHITE
+
+    // Preset colors
+    public static final String plane = RED;
+    public static final String gate = PURPLE;
+    public static final String atc = GREEN_BOLD;
+    public static final String runway = BLACK;
+    public static final String truck = BLUE;
+
+    public static final String init = RED_BOLD;
+    public static final String testing = BLUE_BACKGROUND_BRIGHT;
 }
