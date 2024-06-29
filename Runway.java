@@ -5,7 +5,7 @@
 
 import java.util.concurrent.Semaphore;
 
-public class Runway implements Runnable {
+public class Runway {
     private boolean occupied;
     private Plane plane;
     private final ATC atc;
@@ -14,6 +14,7 @@ public class Runway implements Runnable {
         System.out.println("Initializing Runway...");
         this.occupied = false;
         this.atc = atc;
+        plane = null;
     }
 
     // Lands plane on runway
@@ -24,9 +25,9 @@ public class Runway implements Runnable {
                     colors.runway + "Runway: waiting for runway to clear for plane " + plane.getID() + colors.RESET);
         }
 
+        Thread.sleep(1000);
         this.plane = plane;
         this.occupied = true;
-        Thread.sleep(1000);
 
         System.out.println(colors.BLACK + "Runway: plane " + plane.getID() + " has landed on the runway.");
         notifyAll();
@@ -65,7 +66,20 @@ public class Runway implements Runnable {
         return occupied;
     }
 
-    @Override
-    public void run() {
-    }
+    // @Override
+    // public void run() {
+    // try {
+    // synchronized (atc) {
+    // while (!occupied || plane == null) {
+    // System.out.println(colors.runway + "Runway: Waiting..." + colors.RESET);
+    // wait();
+    // if (plane != null || occupied) {
+
+    // }
+    // }
+    // }
+    // } catch (InterruptedException e) {
+    // e.printStackTrace();
+    // }
+    // }
 }

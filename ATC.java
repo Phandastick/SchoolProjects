@@ -42,23 +42,25 @@ public class ATC {
             Thread gThread = new Thread(gate, gateName);
             gThread.start();
         }
+
+        // Thread threadRunway = new Thread(runway, "Runway");
+        // threadRunway.start();
         // System.out.println(colors.RESET);
     }
 
     public boolean requestLanding(Plane plane) {
         try {
-            sem.acquire(1);
-
             // synchronizing the ATC and the planes on Semaphore lock to notify when a gate
             // is empty AND the runway is clear
             synchronized (this) {
+                sem.acquire(1);
                 Gate gateCheck = checkGate();
                 while (gateCheck == null) { // check if all gates are occupied;
                     // System.out.println(colors.RED_BOLD + Thread.currentThread().getName() + "is
                     // waiting " + colors.RESET);
                     System.out.println(
                             colors.atc + "Plane " + plane.getID() + ": is awaiting landing request..." + colors.RESET);
-                    wait();
+                    Thread.currentThread().wait();
                 }
                 // debug checks
                 // System.out.println("Runway Occupied: " + runway.checkOccupied());
@@ -67,6 +69,7 @@ public class ATC {
                 while (!runway.checkOccupied()) {
                     System.out.println(colors.atc + "ATC: Gate found for Plane " + plane.getID() + " at gate "
                             + gateCheck.getID() + colors.RESET);
+                    notifyAll();
                     Thread.sleep(200);
                     runway.setPlane(plane);
                     Thread.sleep(200);
@@ -77,11 +80,10 @@ public class ATC {
                 }
                 System.out.println(colors.GREEN + "ATC: Landing rejected for " + Thread.currentThread().getName()
                         + colors.RESET);
+                sem.release();
                 return true;
             }
-        } catch (
-
-        InterruptedException e) {
+        } catch (InterruptedException e) {
         } finally {
             sem.release();
         }
