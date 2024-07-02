@@ -28,3 +28,14 @@ public class Main {
         }
     }
 }
+
+/*
+ * 1. Plane create
+ * 2. Request to land
+ * 3. Create queue?
+ * 4. Locks runway
+ * 5. lands
+ * 6. taxi to gate
+ * 7. gate take semaphore
+ * 8. unlock runway
+ */

@@ -9,50 +9,48 @@ public class Runway {
     private boolean occupied;
     private Plane plane;
     private final ATC atc;
+    private final Semaphore runwayMutex;
 
-    public Runway(ATC atc) {
+    public Runway(ATC atc, Semaphore runwayMutex) {
         System.out.println("Initializing Runway...");
         this.occupied = false;
         this.atc = atc;
+        this.runwayMutex = runwayMutex;
         plane = null;
     }
 
     // Lands plane on runway
-    public synchronized void setPlane(Plane plane) throws InterruptedException {
-
-        while (occupied) {
+    public void setPlane(Plane plane) {
+        try {
+            if (occupied) {
+                throw new InterruptedException(colors.RED_BOLD
+                        + "Why tf are you here runway's set plane aint ready begone thot" + colors.RESET);
+            }
+            System.out.println(colors.runway + "Runway: receiving plane " + plane.getID() + colors.RESET);
+            Thread.sleep(1000);
+            this.plane = plane;
+            this.occupied = true;
             System.out.println(
-                    colors.runway + "Runway: waiting for runway to clear for plane " + plane.getID() + colors.RESET);
+                    colors.BLACK + "Runway: plane " + plane.getID() + " has landed on the runway." + colors.RESET);
+
+        } catch (Exception e) {
         }
-
-        Thread.sleep(1000);
-        this.plane = plane;
-        this.occupied = true;
-
-        System.out.println(colors.BLACK + "Runway: plane " + plane.getID() + " has landed on the runway.");
-        notifyAll();
     }
 
-    public void taxiPlane(Plane plane, Gate gate, Semaphore sem) {
+    public void taxiPlane(Gate gate) {
         synchronized (atc) {
             // System.out.println(colors.RED_BOLD + "Runway: Calling taxi to gate
             // function");
             // put while loop to check if not occupied,
-            while (!occupied || this.plane != null) {
-                System.out.println(colors.runway + "Runway: Waiting for plane..." + colors.RESET);
-                try {
-                    atc.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            plane.taxiToGate(gate);
+            this.plane.taxiToGate(gate);
+            // plane is no longer in the runway
             this.plane = null;
             this.occupied = false;
-            atc.notifyAll();
-            System.out.println(colors.runway + "Runway: Notified everybody!" + colors.RESET);
-            sem.release();
-            System.out.println(colors.RED_BOLD + "Runway: Semaphore released!" + colors.RESET);
+            // runwayMutex.release();
+            System.out.println(colors.RED_BOLD + "Runway: runwayMutex released!" + colors.RESET);
+            // notify();
+            // System.out.println(colors.runway + "Runway: Notified everybody!" +
+            // colors.RESET);
         }
     }
 

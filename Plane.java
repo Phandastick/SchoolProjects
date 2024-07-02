@@ -20,18 +20,25 @@ public class Plane implements Runnable {
         System.out.println(colors.init + "Initializing Plane " + id + "..." + colors.RESET);
     }
 
-    public int getID() {
-        return ID;
+    public void land() {
+
+    }
+
+    public void takeoff() {
     }
 
     public void taxiToGate(Gate gate) {
         System.out.println(
                 colors.unimportant + "Plane: Taxiing plane to gate " + gate.getID() + colors.RESET + colors.RESET);
         try {
-            Thread.sleep(850);
+            Thread.sleep(850); // simluate taxi
         } catch (InterruptedException e) {
         }
-        gate.setPlane(this);
+        gate.setPlane(this); // taxi to gate
+    }
+
+    public void taxiToRunway() {
+        // use ATC to
     }
 
     public void embark() {
@@ -63,22 +70,21 @@ public class Plane implements Runnable {
                 colors.plane + "plane " + this.getID() + ": All passengers disembarked" + colors.RESET);
     }
 
-    public synchronized void addFuel(int fuel) {
+    public void addFuel(int fuel) {
         this.fuel += fuel;
     }
 
     @Override
     public void run() {
-        boolean cond = true;
-        synchronized (atc) {
-            while (cond) {
-                System.out.println(colors.plane + "Plane " + this.getID() + " : Requesting to land..." + colors.RESET);
-                cond = atc.requestLanding(this);
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                }
-            }
-        }
+        // boolean cond = true;
+        // while (cond) {
+        System.out.println(colors.plane + "Plane " + this.getID() + " : Requesting to land..." + colors.RESET);
+        atc.requestLanding(this);
+        // }
     }
+
+    public int getID() {
+        return ID;
+    }
+
 }
