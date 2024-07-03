@@ -1,5 +1,8 @@
+import java.util.Random;
+
 public class RefuelingTruck implements Runnable {
     private final ATC atc;
+    private final Random rand = new Random();
 
     public RefuelingTruck(ATC atc) {
         System.out.println("Initializing Refueling truck...");
@@ -9,11 +12,14 @@ public class RefuelingTruck implements Runnable {
     public synchronized void refuel(Plane plane) {
         System.out.println(colors.unimportant + "Refuel truck: Refuelling plane " + Thread.currentThread().getName()
                 + "..." + colors.RESET);
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-        }
-
+        int fuelcount = 0;
+        while (fuelcount < 50)
+            try {
+                Thread.sleep(30);// total of 1500ms to refuel
+                plane.addFuel(1);
+                fuelcount = plane.getFuel();
+            } catch (InterruptedException e) {
+            }
         System.out.println(colors.truck + "Refuel truck: Plane " + plane.getID() + " refuelled" + colors.RESET);
     }
 

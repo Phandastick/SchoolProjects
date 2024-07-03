@@ -20,7 +20,7 @@ public class Runway {
     }
 
     // Lands plane on runway
-    public void setPlane(Plane plane) {
+    public void landPlane(Plane plane) {
         try {
             if (occupied) {
                 throw new InterruptedException(colors.RED_BOLD
@@ -34,24 +34,48 @@ public class Runway {
                     colors.BLACK + "Runway: plane " + plane.getID() + " has landed on the runway." + colors.RESET);
 
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     public void taxiPlane(Gate gate) {
-        synchronized (atc) {
+        synchronized (this) {
             // System.out.println(colors.RED_BOLD + "Runway: Calling taxi to gate
             // function");
-            // put while loop to check if not occupied,
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             this.plane.taxiToGate(gate);
             // plane is no longer in the runway
             this.plane = null;
             this.occupied = false;
-            // runwayMutex.release();
+            notifyAll();
             System.out.println(colors.RED_BOLD + "Runway: runwayMutex released!" + colors.RESET);
-            // notify();
-            // System.out.println(colors.runway + "Runway: Notified everybody!" +
-            // colors.RESET);
         }
+    }
+
+    public void takeOff(Plane plane) {
+        try {
+            if (occupied) {
+                throw new InterruptedException("Go away plane aint taking off broski");
+            }
+
+            System.out.println(colors.runway + "Runway: Plane " + plane.getID() + " is taking off on runway");
+            Thread.sleep(1000);
+            this.plane = null;
+            this.occupied = false;
+            System.out.println(
+                    colors.runway + "Runway: plane " + plane.getID() + " has took off from the runway." + colors.RESET);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void gateToRunway(Plane plane) {
+        System.out.println(colors.plane + "Plane " + plane.getID() + ": is taxiing to the runway");
+
     }
 
     // tells which plan is on runway
@@ -63,21 +87,4 @@ public class Runway {
     public boolean checkOccupied() {
         return occupied;
     }
-
-    // @Override
-    // public void run() {
-    // try {
-    // synchronized (atc) {
-    // while (!occupied || plane == null) {
-    // System.out.println(colors.runway + "Runway: Waiting..." + colors.RESET);
-    // wait();
-    // if (plane != null || occupied) {
-
-    // }
-    // }
-    // }
-    // } catch (InterruptedException e) {
-    // e.printStackTrace();
-    // }
-    // }
 }

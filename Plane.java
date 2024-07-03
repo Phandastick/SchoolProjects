@@ -9,7 +9,6 @@
 public class Plane implements Runnable {
 
     private int ID, passengers, fuel;
-
     private ATC atc;
 
     public Plane(int id, ATC atc) {
@@ -17,19 +16,21 @@ public class Plane implements Runnable {
         this.atc = atc;
         this.passengers = 0;
         this.fuel = 0;
-        System.out.println(colors.init + "Initializing Plane " + id + "..." + colors.RESET);
+        System.out.println(colors.plane + "Initializing Plane " + id + "..." + colors.RESET);
     }
 
     public void land() {
-
+        System.out.println(colors.plane + "Plane " + this.getID() + " is landing on the runway");
     }
 
     public void takeoff() {
+        System.out.println(colors.plane + "Plane " + this.getID() + " is taking off from the runway");
+        notify();
     }
 
     public void taxiToGate(Gate gate) {
         System.out.println(
-                colors.unimportant + "Plane: Taxiing plane to gate " + gate.getID() + colors.RESET + colors.RESET);
+                colors.unimportant + "Plane: Taxiing plane to gate " + gate.getID() + colors.RESET);
         try {
             Thread.sleep(850); // simluate taxi
         } catch (InterruptedException e) {
@@ -38,7 +39,7 @@ public class Plane implements Runnable {
     }
 
     public void taxiToRunway() {
-        // use ATC to
+        // use ATC toa
     }
 
     public void embark() {
@@ -47,7 +48,7 @@ public class Plane implements Runnable {
         while (this.passengers < 50) {
             this.passengers++;
             try {
-                Thread.sleep(30);
+                Thread.sleep(10);
             } catch (InterruptedException e) {
             }
         }
@@ -74,17 +75,34 @@ public class Plane implements Runnable {
         this.fuel += fuel;
     }
 
+    public int getFuel() {
+        return this.fuel;
+    }
+
     @Override
     public void run() {
-        // boolean cond = true;
-        // while (cond) {
         System.out.println(colors.plane + "Plane " + this.getID() + " : Requesting to land..." + colors.RESET);
         atc.requestLanding(this);
-        // }
+        synchronized (this) {
+            try {
+                // System.out
+                // .println(colors.testing + "Plane " + this.getID() + " waiting for
+                // processes..." + colors.RESET);
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println(colors.plane + "Plane " + this.getID() + " requesting take off" + colors.RESET);
+            atc.requestTakeoff(this);
+        }
     }
 
     public int getID() {
         return ID;
+    }
+
+    public int getPasasengers() {
+        return passengers;
     }
 
 }

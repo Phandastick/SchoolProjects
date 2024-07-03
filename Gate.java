@@ -5,14 +5,16 @@ public class Gate implements Runnable {
     Plane plane;
     final RefuelingTruck refuelingTruck;
     private final int ID;
+    private final Runway runway;
     // private final Semaphore sem;
     private final Semaphore runwayMutex;
 
-    public Gate(ATC atc, int id, Semaphore runwayMutex) {
+    public Gate(ATC atc, int id, Semaphore runwayMutex, Runway runway) {
         this.atc = atc;
         this.ID = id;
         this.runwayMutex = runwayMutex;
         this.refuelingTruck = atc.truck;
+        this.runway = runway;
         plane = null;
     }
 
@@ -39,24 +41,28 @@ public class Gate implements Runnable {
 
     public void preparePlane(Plane plane) {
         // disembarking
-        System.out.println(colors.unimportant + "Gate " + this.getID() + ": plane " + plane.getID()
+        System.out.println(colors.gate + "Gate " + this.getID() + ": plane " + plane.getID()
                 + " is being disembarked..." + colors.RESET);
         plane.disEmbark();
 
-        // 2000ms to clean plane
+        // 500ms to clean plane
         System.out
-                .println(colors.unimportant + "Gate " + this.getID() + ": Cleaning plane " +
+                .println(colors.gate + "Gate " + this.getID() + ": Cleaning plane " +
                         plane.getID() + colors.RESET);
         try {
-            Thread.sleep(2000);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
         }
-
         // refuling plane
         refuelingTruck.refuel(this.plane);
-
         // boarding plane
         plane.embark();
+        synchronized (plane) { // notify the plane is ready to takeoff
+            System.out.println(colors.gate + "Gate " + this.getID() + ": Plane " + plane.getID()
+                    + " is ready to take off with\nPassengers: " + plane.getPasasengers() + "\n Fuel: "
+                    + plane.getFuel());
+            plane.notify(); // notify plane ready to leave
+        }
     }
 
     public boolean checkPlane() {
@@ -80,12 +86,12 @@ public class Gate implements Runnable {
 
     @Override
     public void run() {
-        synchronized (atc) {
+        synchronized (runway) {
             System.out.println(colors.gate + "Gate " + this.getID() + ": Running gate thread..." + colors.RESET);
             while (plane == null) {
                 System.out.println(colors.gate + "Gate " + this.getID() + ": Awaiting Plane..." + colors.RESET);
                 try {
-                    wait();
+                    runway.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -96,10 +102,12 @@ public class Gate implements Runnable {
                 System.out.println(colors.gate + "Gate " + this.getID() + ": is awake!" + colors.RESET);
                 preparePlane(this.plane);
                 Thread.sleep(1000);
-                System.out.println(colors.gate + "Deleting plane " + this.plane.getID() + "..." + colors.RESET);
-                this.plane = null;
+                // System.out.println(colors.gate + "Deleting plane " + this.plane.getID() +
+                // "..." + colors.RESET);
+                // this.plane = null;
+                notifyAll();
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
         }
     }
