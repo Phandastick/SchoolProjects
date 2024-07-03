@@ -1,8 +1,8 @@
-import java.util.Random;
+package V1;
 
 public class RefuelingTruck implements Runnable {
+    @SuppressWarnings("unused")
     private final ATC atc;
-    private final Random rand = new Random();
 
     public RefuelingTruck(ATC atc) {
         System.out.println("Initializing Refueling truck...");

@@ -1,3 +1,4 @@
+package V1;
 /*
  * Methods:
  * - Receive request for runway
@@ -54,19 +55,23 @@ public class ATC {
 
                 Gate gateChecked = checkGate();
 
+                if (plane.isEmergency()) {
+                    planeQueue.addFirst(plane);
+                }
+
                 while (gateChecked == null) {
                     System.out
                             .println(colors.atc + "ATC: plane " + plane.getID() + " waiting for gates" + colors.RESET);
-                    System.out.println(colors.testing + "Queue: " + planeQueue.toString());
-
+                    // System.out.println(colors.testing + "Queue: " + planeQueue.toString());
                     wait(); // wait until there are gates free, gate takeoff should notify this wait()
-                    gateChecked = checkGate();
+                    gateChecked = checkGate(); // update if there is a gate free
                 }
 
                 planeQueue.add(plane);
-                while (planeQueue.peek() != plane) {
+                while (planeQueue.peek() != plane) { // if not their turn yet
                     System.out.println(colors.atc + "ATC: Plane " + plane.getID() + " waiting in queue");
-                    System.out.println(colors.testing + "Queue: " + planeQueue.toString());
+                    Thread.sleep(200);
+                    // System.out.println(colors.testing + "Queue: " + planeQueue.toString());
                     notifyAll(); // if there are planes who are not executed for some reason
                     wait(); // wait until notifies for the next plane to land
                 }
@@ -97,6 +102,7 @@ public class ATC {
                 planeQueue.add(plane);
                 while (planeQueue.peek() != plane) {
                     System.out.println(colors.atc + "ATC: Plane " + plane.getID() + " waiting in queue");
+                    notifyAll(); // if there are planes who are not executed for some reason
                     wait(); // wait until notifies for the next plane to land
                 }
                 runway.gateToRunway(plane);

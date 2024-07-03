@@ -1,3 +1,4 @@
+package V1;
 
 /**
  * Plane
@@ -10,6 +11,7 @@ public class Plane implements Runnable {
 
     private int ID, passengers, fuel;
     private ATC atc;
+    boolean emergency;
 
     public Plane(int id, ATC atc) {
         this.ID = id;
@@ -24,8 +26,7 @@ public class Plane implements Runnable {
     }
 
     public void takeoff() {
-        System.out.println(colors.plane + "Plane " + this.getID() + " is taking off from the runway");
-        notify();
+        System.out.println(colors.plane + "Plane " + this.getID() + " is took off from the runway");
     }
 
     public void taxiToGate(Gate gate) {
@@ -36,10 +37,17 @@ public class Plane implements Runnable {
         } catch (InterruptedException e) {
         }
         gate.setPlane(this); // taxi to gate
+        notifyAll();
     }
 
-    public void taxiToRunway() {
-        // use ATC toa
+    public void taxiToRunway(Runway runway) {
+        System.out.println(
+                colors.unimportant + "Plane: Taxiing plane to runway" + colors.RESET);
+        try {
+            Thread.sleep(850); // simluate taxi
+        } catch (InterruptedException e) {
+        }
+        runway.setPlane(this); // taxi to gate
     }
 
     public void embark() {
@@ -103,6 +111,10 @@ public class Plane implements Runnable {
 
     public int getPasasengers() {
         return passengers;
+    }
+
+    public boolean isEmergency() {
+        return emergency;
     }
 
 }

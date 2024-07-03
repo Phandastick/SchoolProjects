@@ -1,3 +1,4 @@
+package V1;
 /*
  * Methods:
  * - receive plane landing
@@ -8,14 +9,13 @@ import java.util.concurrent.Semaphore;
 public class Runway {
     private boolean occupied;
     private Plane plane;
+    @SuppressWarnings("unused")
     private final ATC atc;
-    private final Semaphore runwayMutex;
 
     public Runway(ATC atc, Semaphore runwayMutex) {
         System.out.println("Initializing Runway...");
         this.occupied = false;
         this.atc = atc;
-        this.runwayMutex = runwayMutex;
         plane = null;
     }
 
@@ -75,7 +75,11 @@ public class Runway {
 
     public void gateToRunway(Plane plane) {
         System.out.println(colors.plane + "Plane " + plane.getID() + ": is taxiing to the runway");
+        plane.taxiToRunway(this);
+    }
 
+    public void setPlane(Plane plane) {
+        this.plane = plane;
     }
 
     // tells which plan is on runway

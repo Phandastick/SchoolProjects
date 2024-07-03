@@ -1,12 +1,14 @@
+package V1;
+
 import java.util.concurrent.Semaphore;
 
 public class Gate implements Runnable {
+    @SuppressWarnings("unused")
     private final ATC atc;
     Plane plane;
     final RefuelingTruck refuelingTruck;
     private final int ID;
     private final Runway runway;
-    // private final Semaphore sem;
     private final Semaphore runwayMutex;
 
     public Gate(ATC atc, int id, Semaphore runwayMutex, Runway runway) {
@@ -60,8 +62,16 @@ public class Gate implements Runnable {
         synchronized (plane) { // notify the plane is ready to takeoff
             System.out.println(colors.gate + "Gate " + this.getID() + ": Plane " + plane.getID()
                     + " is ready to take off with\nPassengers: " + plane.getPasasengers() + "\n Fuel: "
-                    + plane.getFuel());
+                    + plane.getFuel() + colors.RESET);
             plane.notify(); // notify plane ready to leave
+            try {
+                System.out.println(colors.gate + "Gate: Waiting for plane notify" + colors.RESET);
+                wait(); // wait until plane leaves the gate
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println(colors.gate + "Gate: reset plane" + colors.RESET);
+            this.plane = null;
         }
     }
 

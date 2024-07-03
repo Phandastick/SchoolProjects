@@ -1,0 +1,6 @@
+V2 idea
+All functions (land, takeoff, etc.) are called in public void run
+wait for the atc to allow the plane to go
+Atc in requestlanding is synchronized on the plane
+Let gate synchronized with plane when it reaches there
+identify runway threading purpose
