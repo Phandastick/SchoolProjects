@@ -2,14 +2,11 @@ import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
 public class RefuelingTruck implements Runnable {
-    @SuppressWarnings("unused")
-    private final ATC atc;
     private final LinkedList<Gate> gates;
     private final Semaphore refuelLock = new Semaphore(1);
 
-    public RefuelingTruck(ATC atc, LinkedList<Gate> gates) {
+    public RefuelingTruck(LinkedList<Gate> gates) {
         System.out.println("Initializing Refueling truck...");
-        this.atc = atc;
         this.gates = gates;
     }
 
@@ -30,6 +27,7 @@ public class RefuelingTruck implements Runnable {
                 System.out
                         .println(c.truck + "Refuel truck: Plane " + plane.getId() + " refuelled & notified" + c.RESET);
                 notifyAll();
+                refuelLock.release();
             }
         } catch (Exception e) {
             e.printStackTrace();

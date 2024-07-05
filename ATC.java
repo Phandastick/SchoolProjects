@@ -20,7 +20,7 @@ public class ATC implements Runnable {
         this.availableGates = new LinkedList<Gate>();
         this.gates = new LinkedList<Gate>();
 
-        this.truck = new RefuelingTruck(this, gates);
+        this.truck = new RefuelingTruck(gates);
         Thread truckThread = new Thread(truck);
         truckThread.start();
 

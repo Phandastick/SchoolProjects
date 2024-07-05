@@ -29,11 +29,13 @@ public class Gate implements Runnable {
             plane.embark();
             while (plane.getFuel() < 50) {
                 try {
+                    System.out.println(c.testing + "Gate " + this.ID + " waiting for refuel...");
                     wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
+
         }
         System.out.println(c.gate + "Gate " + this.getID() + ": refueled plane " + plane.getId());
         return true;
