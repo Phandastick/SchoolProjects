@@ -5,7 +5,7 @@ import java.util.concurrent.Semaphore;
 public class Gate implements Runnable {
     @SuppressWarnings("unused")
     private final ATC atc;
-    Plane plane;
+    private Plane plane;
     final RefuelingTruck refuelingTruck;
     private final int ID;
     private final Runway runway;
