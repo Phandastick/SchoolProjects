@@ -4,3 +4,5 @@ wait for the atc to allow the plane to go
 Atc in requestlanding is synchronized on the plane
 Let gate synchronized with plane when it reaches there
 identify runway threading purpose
+
+All threads waits 1000ms before starting their functions

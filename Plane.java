@@ -1,6 +1,6 @@
 public class Plane implements Runnable {
     private int id, fuel, passengers;
-    private boolean emergency, prepared;
+    private boolean emergency, prepared, landingClearance;
     private final ATC atc;
     private Gate targetGate;
     private Runway runway;
@@ -17,23 +17,24 @@ public class Plane implements Runnable {
 
     public void requestLanding() {
         synchronized (this) {
+            System.out.println(c.plane + "Plane " + id + ": requesting for landing..." + c.r);
             Gate gate = atc.requestLanding(this);
             this.targetGate = gate;
             System.out.println(c.plane + "Plane " + this.getId() + " assigned to gate " + targetGate.getID());
         }
     }
 
-    public void clearLand(Runway runway) {
-        try { // take runway lock
-            System.out.println(c.plane + "Plane " + this.getId() + ": cleared to land on runway..." + c.r);
-            this.runway = runway;
-            runway.handleLanding(this); // land on runway
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    // public void clearLand() {
+    // try {
+    // System.out.println(c.plane + "Plane " + this.getId() + ": cleared to land on
+    // runway..." + c.r);
+    // this.landingClearance = true;
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+    // }
 
-    public void land() {
+    public void land(Runway runway) {
         System.out.println(c.plane + "Plane " + this.getId() + ": landing on runway");
         runway.land(this);
     }
@@ -57,6 +58,8 @@ public class Plane implements Runnable {
 
     public void taxiToRunway() {
     }
+
+    // #region Prepare plane
 
     public void disembark() {
         System.out.println(c.unimportant + "plane " + this.getId() + ": disembarking passengers..." + c.r);
@@ -108,12 +111,14 @@ public class Plane implements Runnable {
         this.fuel += fuel;
     }
 
-    public boolean isEmergency() {
-        return emergency;
-    }
-
     public void setPrepared(Boolean prepared) {
         this.prepared = prepared;
+    }
+
+    // #endregion
+
+    public boolean isEmergency() {
+        return emergency;
     }
 
     // thread function
@@ -121,26 +126,28 @@ public class Plane implements Runnable {
     public void run() {
         System.out.println(c.init + "Initializing Plane" + this.getId() + c.r);
         try {
+            Thread.sleep(1500);
             synchronized (this) {
                 requestLanding(); // get gate, if its null it will wait
                 while (targetGate == null) {
+                    System.out.println(c.testing + "Plane " + this.getId() + ": waiting for gates..." + c.r);
                     wait(); // wait for gate to be available and notify all planes
                     requestLanding();
                 }
                 // System.out.println(c.testing + "Plane " + this.getId() + ": assigned to " +
                 // targetGate.getID() + c.r);
-            }
-            synchronized (targetGate) {
                 // System.out.println(
                 // c.testing + "Plane " + this.getId() + ": Synchronized with gate " +
                 // targetGate.getID() + c.r);
+
                 while (!prepared) {
+                    System.out.println(c.plane + "Plane " + id + " Waiting...");
                     wait(); // wait for prepared to be called
                 }
                 System.out.println(c.testing + "Plane " + this.getId() + ": has woken up from its deep slumber" + c.r);
             }
         } catch (Exception e) {
-            // TODO: handle exception
+            e.printStackTrace();
         }
 
     }
@@ -177,4 +184,9 @@ public class Plane implements Runnable {
         this.prepared = prepared;
     }
 
+    @Override
+    public String toString() {
+        String text = c.testing + "Plane " + this.getId() + ": Passengers " + passengers + ", fuel: " + fuel;
+        return text;
+    }
 }
