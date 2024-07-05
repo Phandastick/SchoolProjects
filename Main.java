@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
         ATC atc = new ATC();
         Random rand = new Random();
-        int NumberOfPlanes = 10;
+        int NumberOfPlanes = 6;
         int MaxMilliseconds = 2000;
 
         Thread atcThread = new Thread(atc);

@@ -3,6 +3,7 @@ import java.util.concurrent.Semaphore;
 
 public class RefuelingTruck implements Runnable {
     private final LinkedList<Gate> gates;
+    private final LinkedList<Gate> gateQueue = new LinkedList<>();
     private final Semaphore refuelLock = new Semaphore(1);
 
     public RefuelingTruck(LinkedList<Gate> gates) {
@@ -10,12 +11,13 @@ public class RefuelingTruck implements Runnable {
         this.gates = gates;
     }
 
-    public void refuel(Plane plane) {
+    public void refuel(Gate gate) {
         try {
             synchronized (this) {
                 refuelLock.acquire();
-                System.out.println(c.truck + "Refuel truck: Refuelling plane " + Thread.currentThread().getName()
-                        + "..." + c.RESET);
+                Plane plane = gate.getPlane();
+                System.out.println(
+                        c.truck + "Refuel truck: Refuelling plane " + Thread.currentThread().getName() + "..." + c.r);
                 int fuelcount = 0;
                 while (fuelcount < 50)
                     try {
@@ -24,9 +26,7 @@ public class RefuelingTruck implements Runnable {
                         fuelcount = plane.getFuel();
                     } catch (InterruptedException e) {
                     }
-                System.out
-                        .println(c.truck + "Refuel truck: Plane " + plane.getId() + " refuelled & notified" + c.RESET);
-                notifyAll();
+                System.out.println(c.truck + "Refuel truck: Plane " + plane.getId() + " refuelled" + c.r);
                 refuelLock.release();
             }
         } catch (Exception e) {
@@ -43,16 +43,29 @@ public class RefuelingTruck implements Runnable {
                     System.out.println(c.truck + "Refuel truck: Waiting for planes to fuel" + c.r);
                     wait(); // wait for gate to call for fuelling
                     System.out.println(c.truck + "Refuel truck: notified" + c.r);
-                    for (Gate gate : gates) {
-                        if (!gate.getPlane().isPrepared()) {
-                            refuel(gate.getPlane());
-                        }
+                    if (gateQueue.peek() != null) {
+                        Gate currentGate = gateQueue.pop();
+                        refuel(currentGate);
+                    } else {
+                        wait();
                     }
                 }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    // join queue to request for refuel on gate
+    public void requestRefuel(Gate gate) {
+        gateQueue.addLast(gate);
+    }
+
+    // debugging purposes
+    public void wakeTruck() {
+        synchronized (this) {
+            notify();
         }
     }
 }

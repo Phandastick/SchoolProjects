@@ -20,10 +20,6 @@ public class ATC implements Runnable {
         this.availableGates = new LinkedList<Gate>();
         this.gates = new LinkedList<Gate>();
 
-        this.truck = new RefuelingTruck(gates);
-        Thread truckThread = new Thread(truck);
-        truckThread.start();
-
         for (int i = 1; i <= 3; i++) {
             Gate gate = new Gate(this, i, runway);
             Thread gThread = new Thread(gate);
@@ -39,8 +35,13 @@ public class ATC implements Runnable {
             gThread.start();
         }
 
+        this.truck = new RefuelingTruck(gates);
+        Thread truckThread = new Thread(truck);
+        truckThread.start();
+
         // Thread runwayThread = new Thread(runway);
         // runwayThread.start();
+        System.out.println(c.init + "ATC has finished initializations");
     }
 
     public void handleLanding() {
@@ -53,29 +54,16 @@ public class ATC implements Runnable {
     }
 
     public void handleTakeoff() {
-
+        synchronized (runway) {
+            while (takeoffQueue.peek() != null) {
+                notify();
+                runway.handleTakeoff(takeoffQueue.pop());
+            }
+        }
     }
 
-    @Override
-    public void run() {
-        try {
-            Thread.sleep(1000);
-            while (true) {
-                synchronized (this) {
-                    if (takeoffQueue.peek() != null) {
-                        handleTakeoff();
-                    }
-
-                    if (landingQueue.peek() != null) {
-                        handleLanding();
-                    }
-                    System.out.println(c.atc + "ATC: Waiting..." + c.r);
-                    wait(); // waiting for runway for planes to be queued
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void handleEmergencyLanding() {
+        // possible case when gates are all full and plane needs emergency landing
     }
 
     public Gate requestLanding(Plane plane) {
@@ -100,7 +88,6 @@ public class ATC implements Runnable {
 
             System.out.println(c.atc + "ATC: plane " + plane.getId() + " added to queue" + c.r);
             notify();
-
             // runway calls atc.getLanding/Takeoff (prioritise takeoff)
             // check gate free
             // check runway free
@@ -111,9 +98,39 @@ public class ATC implements Runnable {
             // runway should release lock
 
         }
-        System.out.println(c.testing + "ATC: plane " + plane.getId() + " returned gate " + gateChecked.getID() + c.r);
-
         return gateChecked;
+    }
+
+    public void requestTakeoff(Plane plane) {
+        synchronized (this) {
+            landingQueue.add(plane);
+            notify();
+        }
+    }
+
+    @Override
+    public void run() {
+        try {
+            Thread.sleep(1000);
+            while (true) {
+                synchronized (this) {
+                    if (takeoffQueue.peek() != null) {
+                        if (landingQueue.peek().isEmergency()) {
+                            handleEmergencyLanding();
+                        }
+                        handleTakeoff();
+                    }
+
+                    if (landingQueue.peek() != null) {
+                        handleLanding();
+                    }
+                    System.out.println(c.atc + "ATC: Waiting..." + c.r);
+                    wait(); // waiting for runway for planes to be queued
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public Plane getNextLanding() {

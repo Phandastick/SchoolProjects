@@ -26,10 +26,28 @@ public class Runway {
                 // taxi sequence
                 plane.taxiToGate(); // taxi to gate
                 runwaySem.release(); // taxi sequence completes
-                synchronized (this) {
-                    notify();
-                }
+            } catch (
 
+            Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void handleTakeoff(Plane plane) {
+        synchronized (plane) {
+            try {
+                // taxi sequence
+                System.out.println(c.plane + "Runway: Trying to get runway lock" + c.r);
+                runwaySem.acquire(); // locks runway
+                System.out.println(c.runway + "Runway: plane " + plane.getId() + " has acquired lock" + c.r);
+                plane.taxiToRunway();
+                System.out.println(c.runway + "Runway: plane " + plane.getId() + " has taxiied to runway" + c.r);
+                this.plane = plane;
+
+                // takeoff
+                plane.takeoff();
+                this.plane = null;
             } catch (
 
             Exception e) {
@@ -42,6 +60,16 @@ public class Runway {
         try {
             System.out.println(c.runway + "Runway: receving plane " + plane.getId() + " landing" + c.r);
             Thread.sleep(1850);
+            this.plane = plane;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void taxi(Plane plane) {
+        try {
+            System.out.println(c.runway + "Runway: receving plane " + plane.getId() + " taxi" + c.r);
+            Thread.sleep(1000);
             this.plane = plane;
         } catch (InterruptedException e) {
             e.printStackTrace();
