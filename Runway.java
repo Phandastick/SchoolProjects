@@ -16,7 +16,6 @@ public class Runway {
         synchronized (plane) {
             try {
                 // landing sequence
-                System.out.println(c.plane + "Runway: Trying to get runway lock" + c.r);
                 runwaySem.acquire(); // locks runway
                 System.out.println(c.runway + "Runway: plane " + plane.getId() + " has acquired lock" + c.r);
                 plane.land(this);
@@ -38,19 +37,19 @@ public class Runway {
         synchronized (plane) {
             try {
                 // taxi sequence
-                System.out.println(c.plane + "Runway: Trying to get runway lock" + c.r);
                 runwaySem.acquire(); // locks runway
                 System.out.println(c.runway + "Runway: plane " + plane.getId() + " has acquired lock" + c.r);
                 plane.taxiToRunway();
                 System.out.println(c.runway + "Runway: plane " + plane.getId() + " has taxiied to runway" + c.r);
-                this.plane = plane;
+                this.plane = plane; // plane is now on runway
 
                 // takeoff
                 plane.takeoff();
+                // plane.getTargetGate().clearPlane(); // notifies the gate that the plane is
+                // gone and should be removed from memory
                 this.plane = null;
-            } catch (
-
-            Exception e) {
+                runwaySem.release();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

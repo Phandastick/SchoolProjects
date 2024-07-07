@@ -1,6 +1,6 @@
 public class Plane implements Runnable {
     private int id, fuel, passengers;
-    private boolean emergency, prepared, landingClearance;
+    private boolean emergency, prepared;
     private final ATC atc;
     private Gate targetGate;
     private Runway runway;
@@ -21,20 +21,11 @@ public class Plane implements Runnable {
         this.targetGate = gate;
     }
 
-    // public void clearLand() {
-    // try {
-    // System.out.println(c.plane + "Plane " + this.getId() + ": cleared to land on
-    // runway..." + c.r);
-    // this.landingClearance = true;
-    // } catch (Exception e) {
-    // e.printStackTrace();
-    // }
-    // }
-
     public void land(Runway runway) {
         System.out.println(c.plane + "Plane " + this.getId() + ": landing on runway" + c.r);
         runway.land(this); // calls this function to prove that runway is receving plane, and also calls
                            // runway.plane = plane
+        this.runway = runway; // set runway to be used in takeoff
     }
 
     public void takeoff() {
@@ -67,7 +58,8 @@ public class Plane implements Runnable {
     public void taxiToRunway() {
         runway.taxi(this); // taxi plane to runway
         synchronized (targetGate) {
-            notify(); // notify that plane has left the gate
+            this.clearGate();
+            targetGate.notify(); // notify that plane has left the gate
         }
     }
 
@@ -134,6 +126,10 @@ public class Plane implements Runnable {
         atc.requestTakeoff(this);
     }
 
+    public void clearGate() {
+        targetGate.clearPlane();
+    }
+
     // thread function
     @Override
     public void run() {
@@ -147,17 +143,12 @@ public class Plane implements Runnable {
                     wait(); // wait for gate to be available and notify all planes
                     requestLanding();
                 }
-                // System.out.println(c.testing + "Plane " + this.getId() + ": assigned to " +
-                // targetGate.getID() + c.r);
-                // System.out.println(
-                // c.testing + "Plane " + this.getId() + ": Synchronized with gate " +
-                // targetGate.getID() + c.r);
 
-                while (!prepared) {
-                    System.out.println(c.plane + "Plane " + id + " Waiting..." + c.r);
+                if (!prepared) {
+                    System.out.println(c.plane + "Plane " + id + " Waiting to be prepared" + c.r);
                     wait(); // wait for prepared to be called
                 }
-                System.out.println(c.testing + "Plane " + this.getId() + ": requesting takeoff..." + c.r);
+
                 requestTakeoff();
             }
         } catch (Exception e) {
@@ -200,6 +191,13 @@ public class Plane implements Runnable {
 
     public void setPrepared(boolean prepared) {
         this.prepared = prepared;
+        synchronized (this) {
+            notify();
+        }
+    }
+
+    public Gate getTargetGate() {
+        return targetGate;
     }
 
     @Override

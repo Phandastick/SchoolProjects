@@ -26,13 +26,13 @@ public class Gate implements Runnable {
             try {
                 System.out.println(c.testing + "Gate " + this.ID + " waiting for refuel..." + c.r);
                 refuelingTruck.wakeTruck(); // notifies truck
-                wait(2000);
+                wait();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        System.out.println(plane.toString()); // debug
-        System.out.println(c.gate + "Gate " + this.getID() + ": refueled plane " + plane.getId());
+        // System.out.println(plane.toString()); // debug
+        System.out.println(c.gate + "Gate " + this.getID() + ": refueled plane " + plane.getId() + c.r);
         return true;
     }
 
@@ -47,22 +47,27 @@ public class Gate implements Runnable {
                         System.out.println(c.gate + "Gate " + this.getID() + ": Awaiting Plane..." + c.r);
                         wait(); // waiting for plane to taxi to gate
                     }
-                    System.out.println(c.gate + "Gate " + this.getID() + ": is awake!" + c.r);
-                    synchronized (plane) {
-                        plane.setPrepared(preparePlane(this.plane)); // do preparation for plane (disembark, supplies,
-                                                                     // etc.)
-                        System.out.println(c.gate + "Gate " + ID + ": prepared plane " + plane.getId());
-                        plane.notify(); // notify plane that it is prepared
-                        System.out.println(c.gate + "Gate " + ID + ": notified plane " + plane.getId());
-                        wait(); // wait for plane to take off before deleting plane from gate's memory in order
-                                // to get next plane
-                        this.plane = null;
-                    }
-                    atc.addGate(this);
+                    System.out.println(
+                            c.gate + "Gate " + this.getID() + ": is awake with plane " + plane.getId() + "!" + c.r);
+                    plane.setPrepared(preparePlane(this.plane)); // do preparation for plane (disembark, supplies,
+                                                                 // etc.)
+                    System.out.println(c.gate + "Gate " + ID + ": prepared plane " + plane.getId() + c.r);
+                    System.out.println(c.testing + "Gate " + ID + ": waiting for takeoff " + plane.getId() + c.r);
+                    wait(); // wait for plane to take off before deleting plane from gate's memory in order
+                            // to get next plane
+                    atc.addGate(this); // add gate back to queue for planes to be assigned to
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void clearPlane() {
+        synchronized (this) {
+            System.out.println(c.testing + "Gate " + ID + ": removing plane " + plane.getId());
+            this.plane = null;
+            notify(); // notifies the gate to continue to wait for next plane
         }
     }
 

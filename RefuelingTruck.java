@@ -17,7 +17,7 @@ public class RefuelingTruck implements Runnable {
                 refuelLock.acquire();
                 Plane plane = gate.getPlane();
                 System.out.println(
-                        c.truck + "Refuel truck: Refuelling plane " + Thread.currentThread().getName() + "..." + c.r);
+                        c.truck + "Refuel truck: Refuelling plane " + plane.getId() + "..." + c.r);
                 int fuelcount = 0;
                 while (fuelcount < 50)
                     try {

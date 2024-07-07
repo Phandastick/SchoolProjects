@@ -1,5 +1,6 @@
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
+import java.util.concurrent.SynchronousQueue;
 
 public class ATC implements Runnable {
 
@@ -46,8 +47,9 @@ public class ATC implements Runnable {
 
     public void handleLanding() {
         synchronized (runway) {
+            System.out.println(c.atc + "ATC: ");
             while (landingQueue.peek() != null) {
-                notify();
+                notifyAll();
                 runway.handleLanding(landingQueue.pop());
             }
         }
@@ -56,7 +58,6 @@ public class ATC implements Runnable {
     public void handleTakeoff() {
         synchronized (runway) {
             while (takeoffQueue.peek() != null) {
-                notify();
                 runway.handleTakeoff(takeoffQueue.pop());
             }
         }
@@ -64,6 +65,9 @@ public class ATC implements Runnable {
 
     public void handleEmergencyLanding() {
         // possible case when gates are all full and plane needs emergency landing
+        synchronized (runway) {
+            runway.handleLanding(landingQueue.pop());
+        }
     }
 
     public Gate requestLanding(Plane plane) {
@@ -87,24 +91,15 @@ public class ATC implements Runnable {
             }
 
             System.out.println(c.atc + "ATC: plane " + plane.getId() + " added to queue" + c.r);
-            notify();
-            // runway calls atc.getLanding/Takeoff (prioritise takeoff)
-            // check gate free
-            // check runway free
-            // call lock runway for plane
-            // land on runway
-            // notify runway
-            // when plane == null in runway
-            // runway should release lock
-
+            notifyAll(); // notifies the runway to handle the next landing
         }
         return gateChecked;
     }
 
     public void requestTakeoff(Plane plane) {
         synchronized (this) {
-            landingQueue.add(plane);
-            notify();
+            takeoffQueue.add(plane);
+            notifyAll();
         }
     }
 
@@ -114,22 +109,44 @@ public class ATC implements Runnable {
             Thread.sleep(1000);
             while (true) {
                 synchronized (this) {
-                    if (takeoffQueue.peek() != null) {
-                        if (landingQueue.peek().isEmergency()) {
+                    while (true) {
+                        while (getEmergency()) {
                             handleEmergencyLanding();
                         }
-                        handleTakeoff();
-                    }
 
-                    if (landingQueue.peek() != null) {
-                        handleLanding();
+                        if (takeoffQueue.peek() != null) {
+                            handleTakeoff();
+                            System.out.println(c.testing + "ATC: Finished take off handle" + c.r);
+                        }
+
+                        if (landingQueue.peek() != null) {
+                            handleLanding();
+                            System.out.println(c.testing + "ATC: Finished landing handle" + c.r);
+                        }
+
+                        System.out.println(c.atc + "ATC: Waiting..." + c.r);
+                        System.out.println(c.testing + "ATC: " + landingQueue.toString() + c.r);
+                        System.out.println(c.testing + "ATC: " + takeoffQueue.toString() + c.r);
+                        if (landingQueue.peek() != null || takeoffQueue.peek() != null || getEmergency()) {
+                            continue; // if one of the queue has a plane, it will not wait and handle additional
+                                      // planes
+                            // implement time out to avoid deadlock by notification before waiting
+                        } else {
+                            wait(4000);
+                        }
                     }
-                    System.out.println(c.atc + "ATC: Waiting..." + c.r);
-                    wait(); // waiting for runway for planes to be queued
                 }
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    public boolean getEmergency() {
+        if (landingQueue.peek() != null) {
+            return landingQueue.peek().isEmergency();
+        } else {
+            return false;
         }
     }
 
@@ -139,7 +156,10 @@ public class ATC implements Runnable {
     }
 
     public void addGate(Gate gate) {
-        availableGates.addLast(gate);
+        synchronized (this) {
+            availableGates.addLast(gate);
+            notify();
+        }
     }
 
     public Gate checkGates() {
