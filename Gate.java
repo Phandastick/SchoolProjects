@@ -4,6 +4,9 @@ public class Gate implements Runnable {
     private RefuelingTruck refuelingTruck;
     private final int ID;
     private final Runway runway;
+    private boolean running = true;
+    private long preparePlaneRequestTime;
+    private long planePreparedTime;
 
     public Gate(ATC atc, int id, Runway runway) {
         this.atc = atc;
@@ -24,9 +27,8 @@ public class Gate implements Runnable {
         plane.embark();
         while (plane.getFuel() < 50) {// refuel: 1500 ms
             try {
-                System.out.println(c.testing + "Gate " + this.ID + " waiting for refuel..." + c.r);
                 refuelingTruck.wakeTruck(); // notifies truck
-                wait();
+                wait(1600);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -39,23 +41,24 @@ public class Gate implements Runnable {
     @Override
     public void run() {
         try {
-            Thread.sleep(1000);
+            // Thread.sleep(1000);
             synchronized (this) {
                 System.out.println(c.gate + "Gate " + this.getID() + ": Running gate thread..." + c.r);
-                while (true) { // keep repeating until no more planes arrive, then stop functions
-                    while (plane == null) { // if there are no planes in gate or a plane has departed from a plane
-                        System.out.println(c.gate + "Gate " + this.getID() + ": Awaiting Plane..." + c.r);
-                        wait(); // waiting for plane to taxi to gate
-                    }
+                wait();
+                while (running) { // keep repeating until no more planes arrive, then stop functions
                     System.out.println(
                             c.gate + "Gate " + this.getID() + ": is awake with plane " + plane.getId() + "!" + c.r);
                     plane.setPrepared(preparePlane(this.plane)); // do preparation for plane (disembark, supplies,
                                                                  // etc.)
                     System.out.println(c.gate + "Gate " + ID + ": prepared plane " + plane.getId() + c.r);
-                    System.out.println(c.testing + "Gate " + ID + ": waiting for takeoff " + plane.getId() + c.r);
                     wait(); // wait for plane to take off before deleting plane from gate's memory in order
                             // to get next plane
                     atc.addGate(this); // add gate back to queue for planes to be assigned to
+                    while (plane == null && running) { // if there are no planes in gate or a plane has departed from a
+                                                       // plane
+                        System.out.println(c.gate + "Gate " + this.getID() + ": Awaiting Plane..." + c.r);
+                        wait(); // waiting for plane to taxi to gate
+                    }
                 }
             }
         } catch (Exception e) {
@@ -65,9 +68,16 @@ public class Gate implements Runnable {
 
     public void clearPlane() {
         synchronized (this) {
-            System.out.println(c.testing + "Gate " + ID + ": removing plane " + plane.getId());
             this.plane = null;
             notify(); // notifies the gate to continue to wait for next plane
+        }
+    }
+
+    public void shutdown() {
+        synchronized (this) {
+            System.out.println(c.gate + "Gate " + this.getID() + ": Shutting down..." + c.r);
+            this.running = false;
+            notify();
         }
     }
 

@@ -17,6 +17,10 @@ public class Runway {
             try {
                 // landing sequence
                 runwaySem.acquire(); // locks runway
+                long landingTime = System.currentTimeMillis() - plane.getLandingRequestTime();
+                plane.addTime(landingTime);
+                System.out.println(c.YELLOW + "Runway: Added " + landingTime + c.r);
+
                 System.out.println(c.runway + "Runway: plane " + plane.getId() + " has acquired lock" + c.r);
                 plane.land(this);
                 System.out.println(c.runway + "Runway: plane " + plane.getId() + " has landed on runway" + c.r);
@@ -38,6 +42,11 @@ public class Runway {
             try {
                 // taxi sequence
                 runwaySem.acquire(); // locks runway
+
+                long takeoffTime = System.currentTimeMillis() - plane.getTakeOffRequestTime();
+                plane.addTime(takeoffTime);
+                System.out.println(c.YELLOW + "Runway: Added " + takeoffTime + c.r);
+
                 System.out.println(c.runway + "Runway: plane " + plane.getId() + " has acquired lock" + c.r);
                 plane.taxiToRunway();
                 System.out.println(c.runway + "Runway: plane " + plane.getId() + " has taxiied to runway" + c.r);

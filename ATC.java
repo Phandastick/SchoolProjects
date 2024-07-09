@@ -1,6 +1,6 @@
+import java.lang.invoke.VarHandle;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
-import java.util.concurrent.SynchronousQueue;
 
 public class ATC implements Runnable {
 
@@ -8,9 +8,13 @@ public class ATC implements Runnable {
     private LinkedList<Plane> landingQueue; // two queues to ensure that take off
     private LinkedList<Plane> takeoffQueue; // can happen first before landing
     private final Runway runway;
+    private boolean shutdown = false; // only stop while loop when false
 
     private LinkedList<Gate> availableGates;
     private LinkedList<Gate> gates;
+
+    private LinkedList<Thread> gateThreads = new LinkedList<>();
+    private Thread truckThread;
 
     // initializing ATC, Runway, gates, refuel trucks
     public ATC() {
@@ -23,25 +27,19 @@ public class ATC implements Runnable {
 
         for (int i = 1; i <= 3; i++) {
             Gate gate = new Gate(this, i, runway);
-            Thread gThread = new Thread(gate);
+            String gateName = "Gate" + i;
+            Thread gThread = new Thread(gate, gateName);
             availableGates.addLast(gate); // add to gate queues
             gates.add(gate); // add to full list of gates
+            gateThreads.add(gThread);
             gThread.start(); // start gate thread
         }
 
-        for (Gate gate : availableGates) {
-            // System.out.println("Gate number " + gate.getID() + " : " + gate.getID());
-            String gateName = "Gate " + gate.getID();
-            Thread gThread = new Thread(gate, gateName);
-            gThread.start();
-        }
-
-        this.truck = new RefuelingTruck(gates);
+        this.truck = new RefuelingTruck();
         Thread truckThread = new Thread(truck);
+        this.truckThread = truckThread;
         truckThread.start();
 
-        // Thread runwayThread = new Thread(runway);
-        // runwayThread.start();
         System.out.println(c.init + "ATC has finished initializations");
     }
 
@@ -50,6 +48,7 @@ public class ATC implements Runnable {
             System.out.println(c.atc + "ATC: ");
             while (landingQueue.peek() != null) {
                 notifyAll();
+                // handles a plane at a time
                 runway.handleLanding(landingQueue.pop());
             }
         }
@@ -84,7 +83,7 @@ public class ATC implements Runnable {
                 gateChecked = checkGates();
             }
 
-            if (plane.isEmergency()) {
+            if (plane.isEmergency()) { // add plane to the top if plane has emergency
                 landingQueue.addFirst(plane);
             } else {
                 landingQueue.addLast(plane);
@@ -106,39 +105,40 @@ public class ATC implements Runnable {
     @Override
     public void run() {
         try {
-            Thread.sleep(1000);
-            while (true) {
-                synchronized (this) {
-                    while (true) {
-                        while (getEmergency()) {
-                            handleEmergencyLanding();
-                        }
+            // Thread.sleep(1000);
+            synchronized (this) {
+                while (!shutdown) {
+                    while (getEmergency()) {
+                        handleEmergencyLanding();
+                    }
 
-                        if (takeoffQueue.peek() != null) {
-                            handleTakeoff();
-                            System.out.println(c.testing + "ATC: Finished take off handle" + c.r);
-                        }
+                    if (takeoffQueue.peek() != null) {
+                        handleTakeoff();
+                    }
 
-                        if (landingQueue.peek() != null) {
-                            handleLanding();
-                            System.out.println(c.testing + "ATC: Finished landing handle" + c.r);
-                        }
+                    if (landingQueue.peek() != null) {
+                        handleLanding();
+                    }
 
-                        System.out.println(c.atc + "ATC: Waiting..." + c.r);
-                        System.out.println(c.testing + "ATC: " + landingQueue.toString() + c.r);
-                        System.out.println(c.testing + "ATC: " + takeoffQueue.toString() + c.r);
-                        if (landingQueue.peek() != null || takeoffQueue.peek() != null || getEmergency()) {
-                            continue; // if one of the queue has a plane, it will not wait and handle additional
-                                      // planes
-                            // implement time out to avoid deadlock by notification before waiting
-                        } else {
-                            wait(4000);
-                        }
+                    System.out.println(c.atc + "ATC: Waiting..." + c.r);
+                    if (landingQueue.peek() != null || takeoffQueue.peek() != null || getEmergency()) {
+                        continue; // if one of the queue has a plane, it will not wait and handle additional
+                                  // planes
+                        // implement time out to avoid deadlock by notification before waiting
+                    } else {
+                        wait(4000);
                     }
                 }
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
+        } finally {
+            // shutdown sequence for all threads after simulation finishes
+            System.out.println(c.atc + "ATC: Shutting down simulation" + c.r);
+            truck.shutdown(); // shutdown refuelling truck
+            for (Gate gate : gates) {
+                gate.shutdown();
+            }
         }
     }
 
@@ -167,6 +167,29 @@ public class ATC implements Runnable {
             return availableGates.pop();
         } catch (NoSuchElementException e) {
             return null;
+        }
+    }
+
+    public void sanityCheck() {
+        System.out.println(c.atc + "==== Sanity check ==== \n" + c.r);
+        checkEmpty();
+    }
+
+    public void checkEmpty() {
+        for (Gate gate : gates) {
+            try {
+                System.out.println(c.atc + "ATC: Gate " + gate.getID() + "'s plane - " + gate.getPlane().getId() + c.r);
+            } catch (NullPointerException e) {
+                System.out.println(c.atc + "ATC: Gate " + gate.getID() + "'s plane does not exist." + c.r);
+            }
+        }
+    }
+
+    public void shutdown() {
+        synchronized (this) {
+            System.out.println(c.atc + "ATC: Shutting down...");
+            this.shutdown = true;
+            notify();
         }
     }
 }

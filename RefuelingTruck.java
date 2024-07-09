@@ -2,13 +2,12 @@ import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
 public class RefuelingTruck implements Runnable {
-    private final LinkedList<Gate> gates;
     private final LinkedList<Gate> gateQueue = new LinkedList<>();
     private final Semaphore refuelLock = new Semaphore(1);
+    private boolean shutdown = false;
 
-    public RefuelingTruck(LinkedList<Gate> gates) {
+    public RefuelingTruck() {
         System.out.println("Initializing Refueling truck...");
-        this.gates = gates;
     }
 
     public void refuel(Gate gate) {
@@ -37,17 +36,14 @@ public class RefuelingTruck implements Runnable {
     @Override
     public void run() {
         try {
-            Thread.sleep(1000);
-            while (true) {
+            // Thread.sleep(1000);
+            while (!shutdown) {
                 synchronized (this) {
                     System.out.println(c.truck + "Refuel truck: Waiting for planes to fuel" + c.r);
                     wait(); // wait for gate to call for fuelling
-                    System.out.println(c.truck + "Refuel truck: notified" + c.r);
                     if (gateQueue.peek() != null) {
                         Gate currentGate = gateQueue.pop();
                         refuel(currentGate);
-                    } else {
-                        wait();
                     }
                 }
             }
@@ -62,9 +58,18 @@ public class RefuelingTruck implements Runnable {
         gateQueue.addLast(gate);
     }
 
-    // debugging purposes
+    // notifies the truck that a gate is
+    // waiting to be refuelled
     public void wakeTruck() {
         synchronized (this) {
+            notify();
+        }
+    }
+
+    public void shutdown() {
+        synchronized (this) {
+            System.out.println(c.truck + "Refuel truck: Shutting down..." + c.r);
+            this.shutdown = true;
             notify();
         }
     }

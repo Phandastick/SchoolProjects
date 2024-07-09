@@ -4,6 +4,11 @@ public class Plane implements Runnable {
     private final ATC atc;
     private Gate targetGate;
     private Runway runway;
+    private double endTime;
+
+    public long requestLandingTime;
+    public long requestTakeoffTime;
+    public long waitingTime;
 
     public Plane(int id, ATC atc, boolean emergency) {
         this.id = id;
@@ -36,6 +41,9 @@ public class Plane implements Runnable {
             e.printStackTrace();
         }
         System.out.println(c.plane + "Plane " + this.getId() + " has took off" + c.r);
+        synchronized (this) {
+            notify();
+        }
     }
 
     public void taxiToGate() {
@@ -135,9 +143,10 @@ public class Plane implements Runnable {
     public void run() {
         System.out.println(c.init + "Initializing Plane" + this.getId() + c.r);
         try {
-            Thread.sleep(1500);
+            // Thread.sleep(1500);
             synchronized (this) {
                 requestLanding(); // get gate, if its null it will wait
+                this.requestLandingTime = System.currentTimeMillis(); // time which it puts in a request
                 while (targetGate == null) {
                     System.out.println(c.testing + "Plane " + this.getId() + ": waiting for gates..." + c.r);
                     wait(); // wait for gate to be available and notify all planes
@@ -148,13 +157,15 @@ public class Plane implements Runnable {
                     System.out.println(c.plane + "Plane " + id + " Waiting to be prepared" + c.r);
                     wait(); // wait for prepared to be called
                 }
-
+                this.requestTakeoffTime = System.currentTimeMillis(); // time when it requests take off
                 requestTakeoff();
+                wait();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(c.plane + "Ending Plane " + this.getId() + c.r);
+        setTime();
+        System.out.println(c.plane + "Ending Plane " + this.getId() + " at " + endTime + c.r);
     }
 
     public boolean isEmergency() {
@@ -198,6 +209,28 @@ public class Plane implements Runnable {
 
     public Gate getTargetGate() {
         return targetGate;
+    }
+
+    public void setTime() {
+        this.endTime = EmergencySimul.getTime();
+    }
+
+    public void showTime() {
+        String formatDouble = String.format("%.3f", endTime);
+        System.out
+                .println(c.plane + "Plane " + this.getId() + ": Took " + formatDouble + " to complete it's execution");
+    }
+
+    public long getLandingRequestTime() {
+        return requestLandingTime;
+    }
+
+    public long getTakeOffRequestTime() {
+        return requestTakeoffTime;
+    }
+
+    public void addTime(long time) {
+        this.waitingTime += time;
     }
 
     @Override
