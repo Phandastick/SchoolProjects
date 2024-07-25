@@ -1,2 +1,4 @@
-# AirportSimulator
-Java Assignment - Simulating an airport using multithreading
+# Medical hospital finder
+
+Finds hospital near you
+Diploma FYP
