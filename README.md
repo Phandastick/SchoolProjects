@@ -1,5 +1,5 @@
 # My School Projects
-As an APU student, I have done quite a few coding projects, and so i shoved them all in here
+As a computer student, I have done quite a few coding projects, and so i shoved them all in here
 
 ## Airport Simulator
 A java program that simulates an airport, programmed using threading
